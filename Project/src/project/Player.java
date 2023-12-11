@@ -7,9 +7,10 @@ import java.io.IOException;
 
 public class Player {
     public int hp; //значение здоровья игрока
-    public String [][] position = ZapolnitMassiv(); //массив в координатами игрока
+    public static String [][] position; //массив в координатами игрока
     public int result; //результаты катки
 
+    public static int CounterOfRecord = 0; //счётчик, который считает шаги и по окончании игры записывает количество пройденных шагов в текстовый файл
 
     //заполняем массив, в каждой ячейке которого содержится координата пикселя массива игрока в начальный момент игры
     public String[][] ZapolnitMassiv() {
@@ -18,7 +19,9 @@ public class Player {
         int cnt_j = 2;
         for (int i = 0; i < 16; i ++) { //цикл будет 16 раз - именно столько пикселей в высоту изображение игрока
             for (int j = 0; j < 12; j++) { //цикл будет 12 раз - именно столько пикселей в ширину изображение игрока
-                String index = Integer.toString(cnt_i)+" "+Integer.toString(cnt_j);
+                String s1 = Integer.toString(cnt_i);
+                String s2 = Integer.toString(cnt_j);
+                String index =s1  +" "+s2;
                 array[i][j] = index;
                 cnt_j++;
             }
@@ -28,68 +31,312 @@ public class Player {
         return array;
     }
 
+
+    //гетеры
     public int getHp () {return hp;}
-    public String[][] getPosition() {return position;}
-    public void setPosition(String[][] position) {this.position = position;}
+    public static String[][] getPosition() {return position;}
 
     public int getResult() {return result;}
-    public void setResult(int result) {this.result = result;}
-
-
 
 
     //конструктор экземпляра класса игрока
     Player () {
         this.hp = 10;
         this.result = 0;
-        this.position = getPosition();
+        this.position = ZapolnitMassiv();
     }
 
 
-    public int getKoordinataI(String[][] array, int x, int y){ //метод который возвращает значение по i в массиве
+    public static int getKoordinataI(String[][] array, int x, int y){ //метод который возвращает значение по i в массиве
         //x и y - индексы, по которым находится координата в массиве
         String s = array[x][y];
         String[] words = s.split(" ");
-        int i = Integer.parseInt(words [0]);
+        String ch = words[0];
+        int i = Integer.parseInt(ch);
         return i;
     }
 
-    public int getKoordinataJ(String[][] array, int x, int y){ //метод который возвращает значение по j в массиве
+    public static int getKoordinataJ(String[][] array, int x, int y){ //метод который возвращает значение по j в массиве
         //x и y - индексы, по которым находится координата в массиве
         String s = array[x][y];
         String[] words = s.split(" ");
-        int j = Integer.parseInt(words [1]);
+        int j = Integer.parseInt(words[1]);
         return j;
     }
 
     //методы для передвижения игрока(изменяем координаты)
 
-    /*public void Jump() { //метод для прыжка игрока
+    public void Jump() { //метод для прыжка игрока (двигаем вверх на 3 пикселя, затем вниз на 3 пикселя)
+        CounterOfRecord++;
+        String [][] player_array  = PlayerSpace.getPlayerArray();
+        String [][] player_pose = getPosition();
+
+        for (int count = 0; count < 3; count++) { //3 раза вверх
+
+            String[][] map_array = new String[Gamespace.getPixelArray().length][Gamespace.getPixelArray()[0].length];
+
+            for (int i = 0; i < Gamespace.getPixelArray().length; i++) {
+                for (int j = 0; j < Gamespace.getPixelArray()[0].length; j++) {
+                    map_array[i][j] = Gamespace.getPixelArray()[i][j];     //создаем дубликат массива карты, чтобы не изменялся исходный массив карты
+                }
+            }
+
+            //меняем координаты игрока(по i - уменьшаем на 1, по j - оставляем прежним)
+            //идем по массиву с координатами
+            for (int i = 0; i < player_pose.length; i++) {
+                for (int j = 0; j < player_pose[0].length; j++) {
+                    int x = getKoordinataI(player_pose, i, j);
+                    x--; //меняем значение координаты на 1
+                    int y = getKoordinataJ(player_pose, i, j); //оставляем без изменений
+                    String s1 = Integer.toString(x);
+                    String s2 = Integer.toString(y);
+                    player_pose[i][j] = s1 + " " + s2; //перезаписываем полученное значение в тот же массив
+                }
+            }
+
+
+            //внедряем массив игрока с изменёнными кординатами в массив карты
+            int cnt_i = 0;
+            int cnt_j = 0;
+            for (int i = 0; i < map_array.length; i++) {
+                for (int j = 0; j < map_array[0].length; j++) {
+                    if (cnt_j == 12) {
+                        cnt_j = 0;
+                        cnt_i++;
+                        if (cnt_i == 16) {  //тут костыль, потому что без прописания этого индекс может быть 16 и выйти за рамки массива. как это фиксить я хз(
+                            cnt_i = 15;
+                        }
+                    }
+                    //если так получилось, что координаты игрока == координатам на карте: внедряем массив игрока в массив карты
+                    if (getKoordinataI(player_pose, cnt_i, cnt_j) == i && getKoordinataJ(player_pose, cnt_i, cnt_j) == j) {
+                        map_array[i][j] = player_array[cnt_i][cnt_j];
+                        cnt_j++;
+                    }
+
+                }
+            }
+
+            //выводим итоговый массив на экран
+            for (int i = 0; i < map_array.length; i++) {
+                for (int j = 0; j < map_array[0].length; j++) {
+                    System.out.print(map_array[i][j] + "██" + "\u001B[0m");
+                }
+                System.out.print("\n");
+            }
+        }
+
+        for (int count = 0; count < 3; count++) { //3 раза вниз
+
+            String[][] map_array = new String[Gamespace.getPixelArray().length][Gamespace.getPixelArray()[0].length];
+
+            for (int i = 0; i < Gamespace.getPixelArray().length; i++) {
+                for (int j = 0; j < Gamespace.getPixelArray()[0].length; j++) {
+                    map_array[i][j] = Gamespace.getPixelArray()[i][j];     //создаем дубликат массива карты, чтобы не изменялся исходный массив карты
+                }
+            }
+
+            //меняем координаты игрока(по i - уменьшаем на 1, по j - оставляем прежним)
+            //идем по массиву с координатами
+            for (int i = 0; i < player_pose.length; i++) {
+                for (int j = 0; j < player_pose[0].length; j++) {
+                    int x = getKoordinataI(player_pose, i, j);
+                    x++; //меняем значение координаты на 1
+                    int y = getKoordinataJ(player_pose, i, j); //оставляем без изменений
+                    String s1 = Integer.toString(x);
+                    String s2 = Integer.toString(y);
+                    player_pose[i][j] = s1 + " " + s2; //перезаписываем полученное значение в тот же массив
+                }
+            }
+
+
+            //внедряем массив игрока с изменёнными кординатами в массив карты
+            int cnt_i = 0;
+            int cnt_j = 0;
+            for (int i = 0; i < map_array.length; i++) {
+                for (int j = 0; j < map_array[0].length; j++) {
+                    if (cnt_j == 12) {
+                        cnt_j = 0;
+                        cnt_i++;
+                        if (cnt_i == 16) {
+                            cnt_i = 15;
+                        }
+                    }
+                    //если так получилось, что координаты игрока == координатам на карте: внедряем массив игрока в массив карты
+                    if (getKoordinataI(player_pose, cnt_i, cnt_j) == i && getKoordinataJ(player_pose, cnt_i, cnt_j) == j) {
+                        map_array[i][j] = player_array[cnt_i][cnt_j];
+                        cnt_j++;
+                    }
+
+                }
+            }
+
+            //выводим итоговый массив на экран
+            for (int i = 0; i < map_array.length; i++) {
+                for (int j = 0; j < map_array[0].length; j++) {
+                    System.out.print(map_array[i][j] + "██" + "\u001B[0m");
+                }
+                System.out.print("\n");
+            }
+        }
+    }
+
+    public void stepRight() { //метод для движения вправо игрока
+        CounterOfRecord++;
+        String[][] player_array = PlayerSpace.getPlayerArray();
+        String[][] player_pose = getPosition();
+
+        for (int count = 0; count < 3; count++) { //3 раза вправо
+            String[][] map_array = new String[Gamespace.getPixelArray().length][Gamespace.getPixelArray()[0].length];
+
+            for (int i = 0; i < Gamespace.getPixelArray().length; i++) {
+                for (int j = 0; j < Gamespace.getPixelArray()[0].length; j++) {
+                    map_array[i][j] = Gamespace.getPixelArray()[i][j];     //создаем дубликат массива карты, чтобы не изменялся исходный массив карты
+                }
+            }
+
+            //меняем координаты игрока(по i - оставляем прежним, по j - увеличиваем на 1)
+            //идем по массиву с координатами
+            for (int i = 0; i < player_pose.length; i++) {
+                for (int j = 0; j < player_pose[0].length; j++) {
+                    int x = getKoordinataI(player_pose, i, j); // оставляем без изменений
+                    int y = getKoordinataJ(player_pose, i, j);
+                    //меняем значение координаты на 1
+                    y++;
+                    String s1 = Integer.toString(x);
+                    String s2 = Integer.toString(y);
+                    player_pose[i][j] = s1 + " " + s2; //перезаписываем полученное значение в тот же массив
+                }
+            }
+
+
+            //внедряем массив игрока с изменёнными кординатами в массив карты
+            int cnt_i = 0;
+            int cnt_j = 0;
+            for (int i = 0; i < map_array.length; i++) {
+                for (int j = 0; j < map_array[0].length; j++) {
+                    if (cnt_j == 12) {
+                        cnt_j = 0;
+                        cnt_i++;
+                        if (cnt_i == 16) {
+                            cnt_i = 15;
+                        }
+                    }
+                    //если так получилось, что координаты игрока == координатам на карте: внедряем массив игрока в массив карты
+                    if (getKoordinataI(player_pose, cnt_i, cnt_j) == i && getKoordinataJ(player_pose, cnt_i, cnt_j) == j) {
+                        map_array[i][j] = player_array[cnt_i][cnt_j];
+                        cnt_j++;
+                    }
+
+                }
+            }
+
+            //выводим итоговый массив на экран
+            for (int i = 0; i < map_array.length; i++) {
+                for (int j = 0; j < map_array[0].length; j++) {
+                    System.out.print(map_array[i][j] + "██" + "\u001B[0m");
+                }
+                System.out.print("\n");
+            }
+        }
+    }
+
+
+    public void stepLeft() { //метод для движения игрока влево
+        CounterOfRecord++;
+        String[][] player_array = PlayerSpace.getPlayerArray();
+        String[][] player_pose = getPosition();
+
+        for (int count = 0; count < 3; count++) { //3 раза вправо
+            String[][] map_array = new String[Gamespace.getPixelArray().length][Gamespace.getPixelArray()[0].length];
+
+            for (int i = 0; i < Gamespace.getPixelArray().length; i++) {
+                for (int j = 0; j < Gamespace.getPixelArray()[0].length; j++) {
+                    map_array[i][j] = Gamespace.getPixelArray()[i][j];     //создаем дубликат массива карты, чтобы не изменялся исходный массив карты
+                }
+            }
+
+            //меняем координаты игрока(по i - оставляем прежним, по j - уменьшаем на 1)
+            //идем по массиву с координатами
+            for (int i = 0; i < player_pose.length; i++) {
+                for (int j = 0; j < player_pose[0].length; j++) {
+                    int x = getKoordinataI(player_pose, i, j); // оставляем без изменений
+                    int y = getKoordinataJ(player_pose, i, j);
+                    //меняем значение координаты на 1
+                    y--;
+                    String s1 = Integer.toString(x);
+                    String s2 = Integer.toString(y);
+                    player_pose[i][j] = s1 + " " + s2; //перезаписываем полученное значение в тот же массив
+                }
+            }
+
+
+            //внедряем массив игрока с изменёнными кординатами в массив карты
+            int cnt_i = 0;
+            int cnt_j = 0;
+            for (int i = 0; i < map_array.length; i++) {
+                for (int j = 0; j < map_array[0].length; j++) {
+                    if (cnt_j == 12) {
+                        cnt_j = 0;
+                        cnt_i++;
+                        if (cnt_i == 16) {
+                            cnt_i = 15;
+                        }
+                    }
+                    //если так получилось, что координаты игрока == координатам на карте: внедряем массив игрока в массив карты
+                    if (getKoordinataI(player_pose, cnt_i, cnt_j) == i && getKoordinataJ(player_pose, cnt_i, cnt_j) == j) {
+                        map_array[i][j] = player_array[cnt_i][cnt_j];
+                        cnt_j++;
+                    }
+
+                }
+            }
+
+            //выводим итоговый массив на экран
+            for (int i = 0; i < map_array.length; i++) {
+                for (int j = 0; j < map_array[0].length; j++) {
+                    System.out.print(map_array[i][j] + "██" + "\u001B[0m");
+                }
+                System.out.print("\n");
+            }
+        }
+    }
+
+    //метод для прыжка вправо по диагонали игрока
+    public void JumpRight() {
+        CounterOfRecord++;
+        String [][] player_array  = PlayerSpace.getPlayerArray();
+        //String [][] map_array = Gamespace.getPixelArray();
+        String [][] player_pose = getPosition();
+
+    }
+
+    //метод для прыжка вправо по диагонали игрока
+    public void JumpLeft() {
+        CounterOfRecord++;
         String [][] player_array  = PlayerSpace.getPlayerArray();
         String [][] map_array = Gamespace.getPixelArray();
         String [][] player_pose = getPosition();
 
-        //меняем координаты игрока(по i - уменьшаем на 1, по j - оставляем прежним)
-        //идем по массиву с координатами
-        for (int i = 0;  i < player_pose.length; i ++) {
-            for (int j = 0; j < player_pose[0].length; j++) {
-                int x = getKoordinataI(player_pose, i, j)-1; //меняем значение координаты на 1
-                int y = getKoordinataJ(player_pose, i, j); //оставляем без изменений
-                player_pose[i][j] = Integer.toString(x)+" "+Integer.toString(y); //перезаписываем полученное значение в тот же массив
-            }
-        }
+    }
 
-        //внедряем массив игрока с изменёнными кординатами в массив карты
+    public static void OutputPlayerWithUnderground() {
+        String [][] player_array  = PlayerSpace.getPlayerArray();
+        String [][] map_array = Gamespace.getPixelArray();
+        String [][] player_pose = getPosition(); //массив с координатами игрока
+        //внедряем массив игрока в массив карты
         int cnt_i = 0;
         int cnt_j = 0;
-        for (int i = 0; i < map_array.length; i ++) {
+        for (int i = 0; i < map_array.length; i++) {
             for (int j = 0; j < map_array[0].length; j++) {
-                if (cnt_j ==12) {
+                if (cnt_j == 12) {
                     cnt_j = 0;
-                    cnt_i ++;
+                    cnt_i++;
+                    if (cnt_i == 16) {
+                        cnt_i = 15;
+                    }
                 }
                 //если так получилось, что координаты игрока == координатам на карте: внедряем массив игрока в массив карты
-                if (getKoordinataI(player_pose, cnt_i, cnt_j) == i && getKoordinataJ(player_pose, cnt_i, cnt_j) == j ){
+                if (getKoordinataI(player_pose, cnt_i, cnt_j) == i && getKoordinataJ(player_pose, cnt_i, cnt_j) == j) {
                     map_array[i][j] = player_array[cnt_i][cnt_j];
                     cnt_j++;
                 }
@@ -98,40 +345,12 @@ public class Player {
         }
 
         //выводим итоговый массив на экран
-        for (int i = 0; i < map_array.length; i ++) {
+        for (int i = 0; i < map_array.length; i++) {
             for (int j = 0; j < map_array[0].length; j++) {
-                System.out.print(map_array[i][j]);
+                System.out.print(map_array[i][j] + "██" + "\u001B[0m");
             }
             System.out.print("\n");
         }
-    }*/
-
-    public void stepRight() { //метод для движения вправо игрока
-        String [][] player_array  = PlayerSpace.getPlayerArray();
-        String [][] map_array = Gamespace.getPixelArray();
-        String [][] player_pose = getPosition();
-
-    }
-
-    public void stepLeft() { //метод для движения игрока влево
-        String [][] player_array  = PlayerSpace.getPlayerArray();
-        String [][] map_array = Gamespace.getPixelArray();
-        String [][] player_pose = getPosition();
-
-    }
-
-    public void JumpRight() {
-        String [][] player_array  = PlayerSpace.getPlayerArray();
-        String [][] map_array = Gamespace.getPixelArray();
-        String [][] player_pose = getPosition();
-
-    }
-
-    public void JumpLeft() {
-        String [][] player_array  = PlayerSpace.getPlayerArray();
-        String [][] map_array = Gamespace.getPixelArray();
-        String [][] player_pose = getPosition();
-
     }
 
     //метод для вывода в консоль показателей игрока
@@ -139,13 +358,7 @@ public class Player {
         System.out.println("HP: "+ getHp());
         System.out.println("Your result: "+ getResult());
         System.out.println("Best result: "+getRecord());
-        System.out.println("Координаты:");
-        for (int i = 0; i < 16; i ++) {
-            for (int j = 0; j < 12; j++) {
-                System.out.print(getPosition()[i][j]+"\t");
-            }
-            System.out.print("\n");
-        }
+
     }
 
     //метод для записи результатов игры в файл
@@ -162,7 +375,7 @@ public class Player {
     }
 
     //метод который считывает файл и возвращает лучший результат
-    public int getRecord() {
+    public static int getRecord() {
         try {
             // Создание объекта FileReader
             FileReader fr = new FileReader("C:\\Users\\User\\Documents\\GitHub\\second-project-fewalthel\\Project\\src\\project\\text.txt");
@@ -191,4 +404,3 @@ public class Player {
         }
     }
 }
-

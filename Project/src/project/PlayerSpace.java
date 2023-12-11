@@ -16,8 +16,8 @@ public class PlayerSpace {
             BufferedImage image = ImageIO.read(new File("C:\\Users\\User\\Documents\\GitHub\\second-project-fewalthel\\Project\\src\\project\\mario.jpg"));
 
             // Получение ширины и высоты изображения
-            int width = image.getWidth();
-            int height = image.getHeight();
+            int width = image.getWidth(); //ширина
+            int height = image.getHeight(); //высота
 
             // Создание двумерного массива для хранения пикселей
             int[][] pixels = new int[height][width];
@@ -32,9 +32,9 @@ public class PlayerSpace {
             String [][] pix = new String[height][width];
 
             // перезапись массива
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    Color color = new Color(pixels[y][x]);
+            for (int x = 0; x < height; x++) {
+                for (int y = 0; y < width; y++) {
+                    Color color = new Color(pixels[x][y]);
                     String s = "\u001B[38;2;" + color.getRed() + ";" + color.getGreen() + ";" + color.getBlue() + "m";
                     pix[x][y] = s;
                 }
@@ -55,7 +55,7 @@ public class PlayerSpace {
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                System.out.print(pix[x][y]+"██"+"\u001B[0m");
+                System.out.print(pix[y][x]+"██"+"\u001B[0m");
             }
             System.out.println();
         }
