@@ -44,7 +44,7 @@ public class Gamespace {
         }
     }
 
-    /*public static String[][] getPixelArray(String[][] pixel_array) { //создаем дубликат игрового поля
+    public static String[][] CopyPixelArray(String[][] pixel_array) { //создаем дубликат игрового поля
         int x = pixel_array.length;
         int y = pixel_array[0].length;
         String [][] array = new String[x][y];
@@ -55,7 +55,7 @@ public class Gamespace {
             }
         }
         return array;
-    }*/
+    }
 
     //вывод массива в консоль
     public static void outputPixelArray() {
@@ -70,4 +70,6 @@ public class Gamespace {
             System.out.println();
         }
     }
+
+
 }

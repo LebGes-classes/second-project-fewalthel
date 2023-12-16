@@ -46,18 +46,4 @@ public class PlayerSpace {
         }
     }
 
-
-    //вывод массива в консоль
-    public static void outputPlayerArray() {
-        String [][] pix = getPlayerArray();
-        int height = pix.length;
-        int width = pix[0].length;
-
-        for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-                System.out.print(pix[y][x]+"██"+"\u001B[0m");
-            }
-            System.out.println();
-        }
-    }
 }
